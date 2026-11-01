@@ -147,6 +147,17 @@ test('ineligible or guarded infection quietly fails but spends the unanimous att
   }
 });
 
+// Catches investigations reporting a pre-conversion role instead of the target's status at dawn.
+test('Seer checks reflect successful conversion at dawn and blocked infection remains village', () => {
+  for (const protectedTarget of [false, true]) {
+    const g = game('infected', true);
+    wolves(g, 'p4', 'infect'); submitNightAction(g, 'p2', 'p4');
+    if (protectedTarget) submitNightAction(g, 'p3', 'p4');
+    next(g);
+    assert.deepEqual(viewForPlayer(g, 'p2').investigations, [{ round: 1, targetId: 'p4', isWolf: !protectedTarget }]);
+  }
+});
+
 // Mutation caught: spending infection or attacking despite nonunanimous action kinds/targets.
 test('wolves must agree on kind and target and nonwolves cannot request infection', () => {
   const g = game('infected'); submitNightAction(g, 'p0', 'p4', 'infect'); submitNightAction(g, 'p1', 'p4', 'kill');

@@ -132,11 +132,7 @@ function resolveNight(game: GameState, now: number) {
   const living = game.players.filter(p => p.alive);
   const guard = living.find(p => p.role === 'guard');
   const protectedId = guard ? game.nightActions[guard.id] : undefined;
-  // Investigations happen before eliminations, including the victim's final check.
-  for (const seer of living.filter(p => p.role === 'seer')) {
-    const target = game.nightActions[seer.id];
-    if (target) (game.investigations[seer.id] ??= []).push({ round: game.round, targetId: target, isWolf: player(game, target).role === 'werewolf' });
-  }
+  const seers = living.filter(p => p.role === 'seer');
   game.lastGuardTarget = protectedId ?? null;
   const witch = living.find(p => p.role === 'witch');
   const choice = witch ? game.witchChoice : null;
@@ -151,6 +147,11 @@ function resolveNight(game: GameState, now: number) {
     if (target.alive && target.role === 'villager' && target.id !== protectedId) {
       target.role = 'werewolf'; game.infectedIds.push(target.id);
     }
+  }
+  // Report status at dawn after conversion; night-start Seers retain a final check even if killed.
+  for (const seer of seers) {
+    const target = game.nightActions[seer.id];
+    if (target) (game.investigations[seer.id] ??= []).push({ round: game.round, targetId: target, isWolf: player(game, target).role === 'werewolf' });
   }
   if (!game.lastEliminated.length) log(game, 'Nobody was eliminated during the night.');
   game.nightActions = {}; game.wolfActions = {}; game.pendingAttack = null; game.witchChoice = null;
