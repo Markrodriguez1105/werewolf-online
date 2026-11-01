@@ -1,4 +1,5 @@
 import { createAppServer } from './app.ts';
+import QRCode from 'qrcode';
 
 const port = Number(process.env.PORT ?? 3000);
 if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('PORT must be an integer from 0 to 65535');
@@ -7,7 +8,11 @@ try {
   const actualPort = await server.listen();
   console.log(`Werewolf is running at http://localhost:${actualPort}`);
   const network = await fetch(`http://127.0.0.1:${actualPort}/api/network`).then(response => response.json()) as { urls: string[] };
-  for (const url of network.urls) console.log(`Join from phones on the same Wi-Fi: ${url}`);
+  for (const url of network.urls) {
+    console.log(`Join from phones on the same Wi-Fi or hotspot: ${url}`);
+    console.log(await QRCode.toString(url, { type: 'terminal', small: true }));
+  }
+  console.log('Keep this terminal open while playing. Press Ctrl+C to stop.');
 } catch (error) {
   console.error(error instanceof Error ? error.message : error);
   await server.close(); process.exitCode = 1;
