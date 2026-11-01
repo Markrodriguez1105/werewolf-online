@@ -1,10 +1,12 @@
 import type { Role } from '../shared/protocol.ts';
 
 export const ROLES: Record<Role, { name: string; line: string; ability: string; team: string }> = {
-  werewolf: { name: 'Werewolf', line: 'A familiar face. A darker secret.', ability: 'Each night, agree with the other wolves on one living villager to eliminate. Stay undiscovered during the day.', team: 'Werewolf team' },
+  werewolf: { name: 'Werewolf', line: 'A familiar face. A darker secret.', ability: 'Each night, agree with the other wolves on one living non-wolf to attack. Stay undiscovered during the day.', team: 'Werewolf team' },
   villager: { name: 'Villager', line: 'Trust your instincts. Not your friends.', ability: 'Listen, question, and vote. You have no night action; your strongest weapon is figuring out who is lying.', team: 'Village team' },
   seer: { name: 'Seer', line: 'Some secrets cannot stay hidden.', ability: 'Each night, investigate one other living player. At dawn, learn privately whether they are a werewolf.', team: 'Village team' },
   guard: { name: 'Guard', line: 'Keep the darkness at the door.', ability: 'Each night, protect one other living player from the wolves. You cannot protect yourself or the same person on consecutive nights.', team: 'Village team' },
+  witch: { name: 'Witch', line: 'Two bottles. Two very different fates.', ability: 'In No Seer mode, you have one healing potion and one poison for the entire game. After the wolves choose, you may save their victim (even yourself), poison another living player, use both, or save your potions.', team: 'Village team' },
+  drunk: { name: 'Drunk', line: 'A little unsteady. Still on your side.', ability: 'In No Seer mode, play the part of a tipsy villager in discussion. You have no night action or special power, and your vote counts normally. You win with the village.', team: 'Village team' },
 };
 
 export function RoleArt({ role, className = '' }: { role: Role | 'back'; className?: string }) {
@@ -24,6 +26,14 @@ export function RoleArt({ role, className = '' }: { role: Role | 'back'; classNa
     {role === 'guard' && <>
       <path d="M48 66V47l12-19h40l12 19v19M57 45h46M64 35h32M48 55h64M57 57l5 32 18 13 18-13 5-32M65 67l10 3M86 70l10-3M80 69v14M70 89l10 4 10-4M58 95l-25 15-5 31M101 96l24 15 7 30M43 106l10 14M117 106l-10 14" />
       <path d="M80 104 112 117 107 144 80 154 53 144 48 117ZM80 114v30M68 128h24M25 43v60M20 36h10l5 8-10 7-10-7ZM18 60h14M125 60v39M121 54h8M41 124l-8 13M119 125l8 13" />
+    </>}
+    {role === 'witch' && <>
+      <path d="m30 59 24-13 26-32 8 28 16 7 23 10-13 7-72 2ZM55 48l42 1M71 29l9 15M45 68l8 24 19 13 21-8 15-30M55 77l11 2M86 79l12-3M76 77l-4 13 11 1M62 96l13 2 11-5M55 102l-20 14-5 25M95 102l20 13 13 26M56 111l18 16 21-16M75 127v20" />
+      <path d="M21 111h18v9l7 8v19H14v-19l7-8ZM23 106h14v5M16 135h28M27 124v8M113 117h18v9l7 8v13h-32v-13l7-8ZM115 112h14v5M108 139h28M117 132l10 9M127 132l-10 9M120 24v10M115 29h10M32 32v8M28 36h8" />
+    </>}
+    {role === 'drunk' && <>
+      <path d="m48 47 12-19 33 8 3 22 15 8-5 5-68-15 3-6ZM61 46l34 8M49 59l1 24 14 17 22 1 18-24M57 68l10 5M86 80l10-2M76 76l-7 11 10 3M59 88l10 8 14-1M51 99l-20 10-6 38M85 106l23 13 10 28M49 108l12 24 20-19M45 122l-4 25M61 133l1 14M95 127l7 20" />
+      <path d="m105 56 29-4 8 37-29 4ZM109 55l-2-8 11 2 9-6 8 7-1 4M137 62l11-2 5 21-13 3M116 64l4 21M126 62l4 21M101 97l10-13 10 8-12 16M24 114l-9-18 9-6 13 21M19 94l-6-5 4-5 9 5M30 25l4 7-4 7-4-7ZM121 24v10M116 29h10" />
     </>}
   </svg>;
 }
