@@ -206,3 +206,40 @@ test('a night action received after its deadline cannot change the resolved nigh
     assert.deepEqual(morning.lastEliminated, []);
   } finally { Date.now = originalNow; }
 });
+
+test('only the host can remove disconnected lobby seats and removed sessions cannot resume', async t => {
+  const { connect } = await setup(t);
+  const a = await connect(), b = await connect(), c = await connect();
+  const host = (await emit(a.socket, 'room:create', { name: 'Ada' })).session!;
+  const guest = (await emit(b.socket, 'room:join', { name: 'Ben', code: host.code })).session!;
+  await emit(c.socket, 'room:join', { name: 'Cleo', code: host.code });
+  assert.equal((await emit(a.socket, 'room:action', { type: 'remove', playerId: guest.playerId })).ok, false);
+  b.socket.disconnect();
+  await stateWhere(a.states, s => s.players.some(p => p.id === guest.playerId && !p.connected));
+  assert.equal((await emit(c.socket, 'room:action', { type: 'remove', playerId: guest.playerId })).ok, false);
+  assert.equal((await emit(a.socket, 'room:action', { type: 'remove', playerId: guest.playerId })).ok, true);
+  await stateWhere(a.states, s => s.players.length === 2 && s.players.every(p => p.id !== guest.playerId));
+  const replacement = await connect();
+  assert.equal((await emit(replacement.socket, 'room:resume', guest)).ok, false);
+});
+
+test('host can reset a stalled reveal to a clean lobby while guests cannot', async t => {
+  const { connect } = await setup(t);
+  const clients: Awaited<ReturnType<typeof connect>>[] = [];
+  const sessions: Session[] = [];
+  for (const name of ['Ada', 'Ben', 'Cleo', 'Dan', 'Eve', 'Flo']) {
+    const c = await connect(); clients.push(c);
+    sessions.push((await emit(c.socket, sessions.length ? 'room:join' : 'room:create', { name, code: sessions[0]?.code })).session!);
+    await emit(c.socket, 'room:action', { type: 'ready', ready: true });
+  }
+  await emit(clients[0].socket, 'room:action', { type: 'start' });
+  clients[5].socket.disconnect();
+  await stateWhere(clients[0].states, s => s.phase === 'reveal' && s.players.some(p => !p.connected));
+  assert.equal((await emit(clients[1].socket, 'room:action', { type: 'reset' })).ok, false);
+  assert.equal((await emit(clients[0].socket, 'room:action', { type: 'reset' })).ok, true);
+  const lobby = await stateWhere(clients[0].states, s => s.phase === 'lobby' && s.players.length === 5);
+  assert.equal(lobby.players.some(p => p.ready || p.role !== undefined), false);
+  assert.equal(lobby.ownRole, undefined);
+  const replacement = await connect();
+  assert.equal((await emit(replacement.socket, 'room:resume', sessions[5])).ok, false);
+});

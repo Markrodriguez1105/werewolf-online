@@ -130,13 +130,19 @@ export function createAppServer(options: { port?: number; host?: string; dev?: b
     room.players.push(player); preset(room);
     return attach(socket, room, player);
   }
+  function resetLobby(room: Room) {
+    room.game = undefined;
+    room.players = room.players.filter(player => player.connected);
+    room.players.forEach(player => { player.ready = false; });
+    preset(room); transferHost(room);
+  }
   function action(socket: Connection, payload: unknown) {
     object(payload);
     assert(typeof payload.type === 'string', 'Invalid action');
     const { room, player } = attached(socket);
     const request = payload as unknown as Action;
     const now = Date.now();
-    if (room.game?.deadline && now >= room.game.deadline && request.type !== 'leave') {
+    if (room.game?.deadline && now >= room.game.deadline && request.type !== 'leave' && request.type !== 'reset') {
       advance(room.game, now); room.touchedAt = now; broadcast(room);
       // Reject the original action: a vote for the expired ballot must not enter its runoff.
       throw new Error('That phase has ended. Review the current phase and try again.');
@@ -164,8 +170,16 @@ export function createAppServer(options: { port?: number; host?: string; dev?: b
       case 'advance':
         host(); assert(['morning', 'discussion'].includes(game().phase), 'Wait for the current phase to finish'); advance(game()); break;
       case 'rematch':
-        host(); assert(game().phase === 'ended', 'Finish the game first'); room.game = undefined;
-        room.players.forEach(p => { p.ready = false; }); preset(room); break;
+        host(); assert(game().phase === 'ended', 'Finish the game first'); resetLobby(room); break;
+      case 'reset':
+        host(); game(); resetLobby(room); break;
+      case 'remove': {
+        host(); lobby();
+        assert(typeof request.playerId === 'string' && request.playerId.length <= 64, 'Invalid player');
+        const target = room.players.find(player => player.id === request.playerId);
+        assert(target && !target.connected, 'Only disconnected lobby players can be removed');
+        room.players = room.players.filter(player => player.id !== target.id); preset(room); break;
+      }
       case 'leave': detach(socket, true); return;
       default: throw new Error('Unknown action');
     }
