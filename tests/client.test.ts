@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { eligibleTargets, inviteUrl, parseSession } from '../src/client/game-ui.ts';
+import { eligibleTargets, inviteUrl, parseSession, moderatorNarration } from '../src/client/game-ui.ts';
 import { DEFAULT_SETTINGS, type RoomView } from '../src/shared/protocol.ts';
 
 const room = (overrides: Partial<RoomView> = {}): RoomView => ({
@@ -39,4 +39,29 @@ test('malformed stored sessions cannot be sent as a resume identity', () => {
   assert.equal(parseSession('{"code":"ABCDEF"}'), null);
   assert.equal(parseSession('null'), null);
   assert.deepEqual(parseSession('{"code":"ABCDEF","playerId":"a","token":"private","role":"werewolf"}'), { code: 'ABCDEF', playerId: 'a', token: 'private' });
+});
+
+test('only a living Witch selects poison targets in the potion stage, excluding self and dead players', () => {
+  assert.deepEqual(eligibleTargets(room({ ownRole: 'witch' })), []);
+  assert.deepEqual(eligibleTargets(room({ ownRole: 'drunk' })), []);
+  const witch = room({ phase: 'witch', ownRole: 'witch', witch: { healAvailable: true, killAvailable: true, attackTargetId: 'a', choice: null } });
+  assert.deepEqual(eligibleTargets(witch).map(p => p.id), ['b', 'c']);
+  assert.deepEqual(eligibleTargets({ ...witch, witch: { ...witch.witch!, killAvailable: false } }), []);
+  assert.deepEqual(eligibleTargets(room({ phase: 'witch', ownRole: 'villager' })), []);
+});
+
+test('infection targets do not disclose hidden special-role eligibility', () => {
+  const infected = room({ settings: { ...DEFAULT_SETTINGS, mode: 'infected' }, ownRole: 'werewolf', wolfIds: ['a'], ownWolfAction: 'infect' });
+  assert.deepEqual(eligibleTargets(infected).map(p => p.id), ['b', 'c']);
+  assert.deepEqual(eligibleTargets({ ...infected, players: infected.players.map(p => p.id === 'b' ? { ...p, role: 'guard' as const } : p) }).map(p => p.id), ['b', 'c']);
+});
+
+test('moderator narration is identical for everyone despite infection, Witch and pact secrets', () => {
+  const publicRoom = room({ settings: { ...DEFAULT_SETTINGS, mode: 'no-seer' }, phase: 'witch' });
+  const privateRoom = { ...publicRoom, ownRole: 'witch' as const, wasInfected: true, pactPartnerId: 'c', ownTarget: 'b', witch: { healAvailable: true, killAvailable: true, attackTargetId: 'b', choice: { heal: true, poisonTargetId: 'c' } } };
+  assert.equal(moderatorNarration(privateRoom), moderatorNarration(publicRoom));
+  assert.ok(moderatorNarration(publicRoom).length > 25);
+  assert.notEqual(moderatorNarration(room({ round: 1 })), moderatorNarration(room({ round: 2 })));
+  assert.notEqual(moderatorNarration(room({ phase: 'morning', lastEliminated: [] })), moderatorNarration(room({ phase: 'morning', lastEliminated: ['d'] })));
+  assert.notEqual(moderatorNarration(room({ phase: 'night', settings: { ...DEFAULT_SETTINGS, mode: 'classic' } })), moderatorNarration(room({ phase: 'night', settings: { ...DEFAULT_SETTINGS, mode: 'no-seer' } })));
 });
