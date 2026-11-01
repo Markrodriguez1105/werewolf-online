@@ -62,7 +62,7 @@ export function App() {
       try { await ask(socket, 'room:resume', sessionRef.current); }
       catch (e) {
         if (!active) return;
-        if (e instanceof ServerReplyError) {
+        if (e instanceof ServerReplyError && /^(Invalid session|Session expired)/i.test(e.message)) {
           sessionRef.current = null;
           saveSession(null);
           setRoom(null);
