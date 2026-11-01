@@ -70,6 +70,8 @@ export type Action =
   | { type: 'vote'; targetId: string }
   | { type: 'advance' }
   | { type: 'rematch' }
+  | { type: 'reset' }
+  | { type: 'remove'; playerId: string }
   | { type: 'leave' };
 export interface Reply { ok: boolean; error?: string; session?: Session }
 export type Ack = (reply: Reply) => void;
