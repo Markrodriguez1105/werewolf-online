@@ -78,6 +78,7 @@ summary::marker { color: var(--muted); }
 .request-status { min-height: 24px; color: var(--muted); font-size: 13px; margin-bottom: 12px; }
 .resume-button { margin-bottom: 20px; }
 .skip-link { position: fixed; top: -80px; left: 16px; z-index: 20; background: var(--surface); padding: 12px; }
+.skip-link:not(:focus) { clip-path: inset(50%); }
 .skip-link:focus { top: 12px; }
 
 /* One 1088px canvas: 572px + 72px gutter + 444px. It folds to one column. */
