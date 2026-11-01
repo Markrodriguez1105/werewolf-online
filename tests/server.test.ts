@@ -243,3 +243,127 @@ test('host can reset a stalled reveal to a clean lobby while guests cannot', asy
   const replacement = await connect();
   assert.equal((await emit(replacement.socket, 'room:resume', sessions[5])).ok, false);
 });
+
+// Catches dropped mode updates, unknown modes, and guests changing the host's chosen rules.
+test('only the host can choose one of the four supported modes', async t => {
+  const { connect } = await setup(t);
+  const host = await connect(), guest = await connect();
+  const session = (await emit(host.socket, 'room:create', { name: 'Ada' })).session!;
+  await emit(guest.socket, 'room:join', { name: 'Ben', code: session.code });
+  const initial = await stateWhere(host.states, s => s.phase === 'lobby');
+  assert.equal(initial.settings.mode, 'classic');
+  assert.equal((await emit(guest.socket, 'room:action', { type: 'settings', settings: { mode: 'no-seer' } })).ok, false);
+  for (const mode of ['no-seer', 'infected', 'secret-pact', 'classic']) {
+    const result = await emit(host.socket, 'room:action', { type: 'settings', settings: { mode } });
+    assert.equal(result.ok, true, result.error);
+    await stateWhere(guest.states, s => s.settings.mode === mode);
+  }
+  for (const mode of ['unknown', '', null, 4, {}, ['classic']]) {
+    assert.equal((await emit(host.socket, 'room:action', { type: 'settings', settings: { mode } })).ok, false);
+  }
+});
+
+async function startMode(t: TestContext, mode: 'classic' | 'no-seer' | 'infected' | 'secret-pact') {
+  const { connect } = await setup(t);
+  const clients: Awaited<ReturnType<typeof connect>>[] = [];
+  let code: string | undefined;
+  for (const name of ['Ada', 'Ben', 'Cleo', 'Dan', 'Eve', 'Flo']) {
+    const c = await connect(); clients.push(c);
+    const reply = await emit(c.socket, code ? 'room:join' : 'room:create', { name, code });
+    assert.equal(reply.ok, true, reply.error); code ??= reply.session!.code;
+    await emit(c.socket, 'room:action', { type: 'ready', ready: true });
+  }
+  const settings = await emit(clients[0].socket, 'room:action', { type: 'settings', settings: { mode, nightSeconds: 10 } });
+  assert.equal(settings.ok, true, settings.error);
+  assert.equal((await emit(clients[0].socket, 'room:action', { type: 'start' })).ok, true);
+  for (const c of clients) await emit(c.socket, 'room:action', { type: 'acknowledge' });
+  const views = await Promise.all(clients.map(c => stateWhere(c.states, s => s.phase === 'night')));
+  return { clients, views };
+}
+
+test('wolf action kinds are validated and nonwolves cannot request infection', async t => {
+  const { clients, views } = await startMode(t, 'infected');
+  const wolfIndex = views.findIndex(s => s.ownRole === 'werewolf');
+  const seerIndex = views.findIndex(s => s.ownRole === 'seer');
+  const targetId = views[seerIndex].youId;
+  for (const kind of ['INVALID', null, 1, {}, ['infect']]) {
+    assert.equal((await emit(clients[wolfIndex].socket, 'room:action', { type: 'night', targetId, kind })).ok, false);
+  }
+  assert.equal((await emit(clients[seerIndex].socket, 'room:action', { type: 'night', targetId: views[wolfIndex].youId, kind: 'infect' })).ok, false);
+  const result = await emit(clients[wolfIndex].socket, 'room:action', { type: 'night', targetId, kind: 'infect' });
+  assert.equal(result.ok, true, result.error);
+  const wolf = await stateWhere(clients[wolfIndex].states, s => s.ownWolfAction === 'infect');
+  assert.equal(wolf.infectionAvailable, true);
+  for (let i = 0; i < views.length; i++) {
+    if (i === wolfIndex) continue;
+    const state = clients[i].states.at(-1)!;
+    assert.equal(state.wolfActionSelections, undefined);
+    assert.equal(state.infectionAvailable, undefined);
+    assert.equal(state.ownWolfAction, undefined);
+    assert.equal(state.witch, undefined);
+  }
+});
+
+test('Witch choice payloads are validated and visible only to the Witch', { timeout: 20000 }, async t => {
+  const { clients, views } = await startMode(t, 'no-seer');
+  const witchIndex = views.findIndex(s => s.ownRole === 'witch');
+  const wolfIndex = views.findIndex(s => s.ownRole === 'werewolf');
+  const drunkIndex = views.findIndex(s => s.ownRole === 'drunk');
+  assert.ok(witchIndex >= 0 && wolfIndex >= 0 && drunkIndex >= 0);
+  const witchId = views[witchIndex].youId;
+  const wolfId = views[wolfIndex].youId;
+  const selected = await emit(clients[wolfIndex].socket, 'room:action', { type: 'night', targetId: witchId });
+  assert.equal(selected.ok, true, selected.error);
+  assert.equal((await emit(clients[drunkIndex].socket, 'room:action', { type: 'night', targetId: wolfId })).ok, false);
+  const deadline = Date.now() + 13000;
+  while (Date.now() < deadline && clients.some(c => c.states.at(-1)?.phase !== 'witch')) {
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+  const witch = clients[witchIndex].states.at(-1)!;
+  assert.equal(witch.phase, 'witch');
+  assert.equal(witch.witch?.attackTargetId, witchId);
+  assert.equal((await emit(clients[0].socket, 'room:action', { type: 'advance' })).ok, false);
+  for (const choice of [null, {}, { heal: 'yes', poisonTargetId: null }, { heal: false }, { heal: true, poisonTargetId: 12 }, { heal: true, poisonTargetId: 'x'.repeat(65) }, { heal: true, poisonTargetId: null, extra: true }]) {
+    assert.equal((await emit(clients[witchIndex].socket, 'room:action', { type: 'witch', choice })).ok, false);
+  }
+  assert.equal((await emit(clients[drunkIndex].socket, 'room:action', { type: 'witch', choice: { heal: true, poisonTargetId: wolfId } })).ok, false);
+  const accepted = await emit(clients[witchIndex].socket, 'room:action', { type: 'witch', choice: { heal: true, poisonTargetId: wolfId } });
+  assert.equal(accepted.ok, true, accepted.error);
+  const chosen = await stateWhere(clients[witchIndex].states, s => s.witch?.choice?.heal === true);
+  assert.deepEqual(chosen.witch?.choice, { heal: true, poisonTargetId: wolfId });
+  for (let i = 0; i < clients.length; i++) {
+    if (i === witchIndex) continue;
+    const other = clients[i].states.at(-1)!;
+    assert.equal(other.witch, undefined);
+    assert.equal(other.phase, 'witch');
+    assert.equal(other.players.some(p => p.id !== other.youId && p.role !== undefined), false);
+  }
+  const cleared = await emit(clients[witchIndex].socket, 'room:action', { type: 'witch', choice: { heal: false, poisonTargetId: null } });
+  assert.equal(cleared.ok, true, cleared.error);
+  const originalNow = Date.now;
+  const offset = chosen.deadline! - originalNow() + 1;
+  try {
+    Date.now = () => originalNow() + offset;
+    const late = await emit(clients[witchIndex].socket, 'room:action', { type: 'witch', choice: { heal: true, poisonTargetId: wolfId } });
+    assert.equal(late.ok, false);
+    const morning = await stateWhere(clients[witchIndex].states, s => s.phase === 'morning');
+    assert.equal(morning.players.find(p => p.id === witchId)?.alive, false);
+    assert.equal(morning.players.find(p => p.id === wolfId)?.alive, true);
+  } finally { Date.now = originalNow; }
+});
+
+test('Secret Pact partner identity is private to exactly the linked pair', async t => {
+  const { clients, views } = await startMode(t, 'secret-pact');
+  const partners = views.filter(view => view.pactPartnerId !== undefined);
+  assert.equal(partners.length, 2);
+  assert.equal(partners[0].pactPartnerId, partners[1].youId);
+  assert.equal(partners[1].pactPartnerId, partners[0].youId);
+  for (const client of clients) {
+    const state = client.states.at(-1)!;
+    assert.equal('pact' in state, false);
+    assert.equal('witchChoice' in state, false);
+    assert.equal('infectedIds' in state, false);
+    const partner = state.players.find(p => p.id === state.pactPartnerId);
+    if (partner && state.ownRole !== 'werewolf') assert.equal(partner.role, undefined);
+  }
+});
