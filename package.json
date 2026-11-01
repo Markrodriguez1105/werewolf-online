@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx src/server/index.ts --dev",
+    "dev": "node --import tsx src/server/index.ts --dev",
     "build": "tsc --noEmit && vite build",
-    "start": "tsx src/server/index.ts",
-    "test": "tsx --test tests/*.test.ts",
+    "start": "node --import tsx src/server/index.ts",
+    "test": "node --import tsx --test tests/*.test.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {
