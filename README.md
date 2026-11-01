@@ -12,7 +12,11 @@ npm run build
 npm start
 ```
 
-Open **http://localhost:3000** on the host computer. The terminal prints the computer's LAN address, such as `http://192.168.1.20:3000`. On phones, open that LAN address or scan the room's QR code. Each person needs their own browser session/device.
+The terminal prints the computer's current LAN address and a scannable QR code for each detected network interface. Scan the terminal QR with your phone's camera to open the app. Both the Mac and phones must be on the same reachable Wi-Fi or hotspot. You can also enter the printed URL manually. Each person needs their own browser session/device.
+
+Use that same network URL on the Mac when hosting. After creating a room, share its room QR code or room code with the other players. The terminal QR opens the app; the room QR opens that particular room.
+
+Keep the terminal open while playing. Press **Ctrl+C** to stop the server. If you switch Wi-Fi networks or hotspots, stop and run `npm start` again to print the updated address and QR code.
 
 1. Enter your name and create a room.
 2. Share the room link or QR code. Players join with their own names.
@@ -69,5 +73,6 @@ Features were developed by separate agents in separate branches and Git worktree
 | `feature/rooms-networking` | Rooms, sessions, validation, reconnect, host transfer, LAN server |
 | `feature/mobile-ui` | Reference-inspired role cards and complete mobile player interface |
 | `feature/lan-release` | Integration, verification, local-network documentation |
+| `feature/terminal-qr` | Current network URL and scannable QR codes at terminal startup |
 
 Card styling follows the supplied design reference: white faces, thin borders, angular copper line art, compact role titles, and black backs. Role illustrations are original SVG artwork included in the application.

@@ -2,11 +2,12 @@
 
 ## Automated checks
 
-- `npm test`: 26 passing checks across engine, Socket.IO integration, client selectors, and one real timed six-client match.
+- `npm test`: 27 passing checks across engine, Socket.IO integration, client selectors, terminal QR startup, and one real timed six-client match.
 - `npm run build`: TypeScript check and production Vite build pass.
 - Engine checks include role deck validation, fixed night deadlines, unanimous/revisable wolf actions, simultaneous Seer/protection resolution, invalid/dead actors, one runoff, vote revisions, village victory, wolf parity victory, and private view isolation.
 - Server checks include malformed payloads, unique names, session replacement, host transfer, lobby readiness, late-action rejection, active-match joining restrictions, disconnected seat recovery, match reset, room capacity, attempt limits, and LAN address discovery.
 - The full-match test connects six independent Socket.IO clients, submits a protected attack and Seer check, waits for the actual night deadline, verifies private results, votes out the wolf, and returns to a fresh lobby.
+- The terminal startup test launches the real entry point on an assigned port, checks its health endpoint, and verifies that each terminal QR encodes the advertised LAN URL and actual port.
 
 ## Browser verification
 
@@ -33,7 +34,7 @@ The rendered home, role reveal, night actions, results, share dialog, and correc
 
 - The production server binds to `0.0.0.0` and responds through both loopback and the detected LAN address.
 - `/api/health` returned `{ "ok": true }` through `http://192.168.1.57:3000` on this host. That address can change with the network.
-- No physical phone or separate Wi-Fi device was available for a hardware connection test. Browser emulation and host-to-LAN requests were verified.
+- The user subsequently confirmed the game loads on a physical phone when the Mac connects to its hotspot. Access through the original PLDT Wi-Fi remains unresolved.
 - Safari/WebKit was not tested.
 - Rooms are intentionally in memory. Restarting the server ends matches; browser refresh/reconnect preserves seats while the server remains running.
 - Feature branches and their worktrees are retained. The release branch integrates all three agent-owned features; `main` contains the reviewed release.
