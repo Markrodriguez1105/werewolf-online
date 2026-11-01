@@ -44,7 +44,7 @@ export function moderatorNarration(view: RoomView): string {
     case 'witch': return 'The night is not over. Keep your eyes closed and your screens private. The village must wait a little longer before the sun can rise.';
     case 'morning': {
       const names = view.lastEliminated.map(id => view.players.find(player => player.id === id)?.name).filter(Boolean).join(', ');
-      return names ? `Dawn breaks over a quieter village. ${names} will no longer join the discussion. Those still living must decide what to do next.` : 'Dawn breaks, and every seat is still filled. The village survived this night. What happened in the darkness remains a mystery.';
+      return names ? `Dawn breaks over a quieter village. ${names} will no longer join the discussion. Those still living must decide what to do next.` : 'Dawn breaks. No one was lost tonight. What happened in the darkness remains a mystery.';
     }
     case 'discussion': return later ? 'Another day, another story. Speak together, question what you hear, and decide whose account holds up. The village will soon have to vote.' : 'The village gathers. Tell your stories, ask your questions, and listen carefully. One of these familiar voices may be hiding something.';
     case 'vote': return view.runoffCandidates ? 'The village is divided. Vote once more among the tied players. Another tie means the village sends no one away.' : 'The talking is over. Each living player must choose who leaves the village. Keep your vote private until the verdict.';

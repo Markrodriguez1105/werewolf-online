@@ -383,6 +383,7 @@ function Rules() {
       <li>A unanimous infection attempt is spent even when protection or ineligibility makes it fail. Disagreement on action or target, or a missing wolf choice, means no attack and no spent attempt.</li>
       <li>A converted player privately sees “You are now a Werewolf.” They win with the wolves, learn their living pack, and may act with them starting next night. The pack learns its new member.</li>
       <li>The village receives no conversion announcement. Public deck counts describe the initial deal and do not increase when someone turns.</li>
+      <li>Seer checks show the target’s status at dawn, after any conversion that night. An older innocent check may become outdated.</li>
     </ul>
     <h3>The Secret Pact</h3>
     <p>This mode also uses the Classic deck. Two distinct players are linked randomly, independently of their roles. Each privately learns the other’s name. Their teams and victory conditions remain unchanged; this is not a new team.</p>
