@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createGame, acknowledgeRole, submitNightAction, submitVote, advance, viewForPlayer } from '../src/game/engine.ts';
 import type { GameState, Settings } from '../src/shared/protocol.js';
 
-const settings: Settings = { wolves: 2, guard: true, discussionSeconds: 30, nightSeconds: 20, voteSeconds: 15 };
+const settings: Settings = { mode: 'classic', wolves: 2, guard: true, discussionSeconds: 30, nightSeconds: 20, voteSeconds: 15 };
 const identities = (count = 8) => Array.from({ length: count }, (_, i) => ({ id: `p${i}`, name: `Player ${i}`, connected: true, ready: true }));
 function game() { return createGame(identities(), settings, 1000, () => .999); }
 function night(g: GameState) { for (const p of g.players) acknowledgeRole(g, p.id, 1000); }
