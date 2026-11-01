@@ -4,7 +4,7 @@ import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { networkInterfaces } from 'node:os';
 import path from 'node:path';
 import { Server, type Socket } from 'socket.io';
-import { acknowledgeRole, advance, createGame, submitNightAction, submitVote, viewForPlayer } from '../game/engine.ts';
+import { acknowledgeRole, advance, createGame, submitNightAction, submitVote, submitWitchAction, viewForPlayer } from '../game/engine.ts';
 import { DEFAULT_SETTINGS, type Action, type Ack, type ClientToServerEvents, type GameState, type PlayerIdentity, type RoomView, type ServerToClientEvents, type Session, type Settings } from '../shared/protocol.ts';
 
 type Player = PlayerIdentity & { token: string; socketId?: string };
@@ -30,9 +30,10 @@ function codeOf(value: unknown): string {
 }
 function validateSettings(input: unknown, current: Settings): Settings {
   object(input);
-  const allowed = ['wolves', 'guard', 'discussionSeconds', 'nightSeconds', 'voteSeconds'];
+  const allowed = ['mode', 'wolves', 'guard', 'discussionSeconds', 'nightSeconds', 'voteSeconds'];
   assert(Object.keys(input).length > 0 && Object.keys(input).every(key => allowed.includes(key)), 'Invalid settings');
   const settings = { ...current, ...input } as Settings;
+  assert(['classic', 'no-seer', 'infected', 'secret-pact'].includes(settings.mode), 'Choose a supported game mode');
   assert(Number.isInteger(settings.wolves) && settings.wolves >= 1 && settings.wolves <= 4, 'Choose 1–4 werewolves');
   assert(typeof settings.guard === 'boolean', 'Invalid guard setting');
   for (const [key, min, max] of [['discussionSeconds', 15, 900], ['nightSeconds', 10, 300], ['voteSeconds', 10, 300]] as const) {
@@ -163,7 +164,17 @@ export function createAppServer(options: { port?: number; host?: string; dev?: b
       case 'acknowledge': acknowledgeRole(game(), player.id); break;
       case 'night':
         assert(typeof request.targetId === 'string' && request.targetId.length <= 64, 'Invalid target');
-        submitNightAction(game(), player.id, request.targetId); break;
+        assert(request.kind === undefined || request.kind === 'kill' || request.kind === 'infect', 'Invalid wolf action');
+        submitNightAction(game(), player.id, request.targetId, request.kind); break;
+      case 'witch': {
+        object(request.choice);
+        assert(Object.keys(request.choice).length === 2
+          && Object.keys(request.choice).every(key => key === 'heal' || key === 'poisonTargetId'), 'Invalid Witch choice');
+        assert(typeof request.choice.heal === 'boolean', 'Invalid healing choice');
+        assert(request.choice.poisonTargetId === null || (typeof request.choice.poisonTargetId === 'string'
+          && request.choice.poisonTargetId.length > 0 && request.choice.poisonTargetId.length <= 64), 'Invalid poison target');
+        submitWitchAction(game(), player.id, request.choice); break;
+      }
       case 'vote':
         assert(typeof request.targetId === 'string' && request.targetId.length <= 64, 'Invalid target');
         submitVote(game(), player.id, request.targetId); break;

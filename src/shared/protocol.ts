@@ -1,7 +1,11 @@
-export type Role = 'werewolf' | 'villager' | 'seer' | 'guard';
-export type Phase = 'lobby' | 'reveal' | 'night' | 'morning' | 'discussion' | 'vote' | 'ended';
+export type Role = 'werewolf' | 'villager' | 'seer' | 'guard' | 'witch' | 'drunk';
+export type GameMode = 'classic' | 'no-seer' | 'infected' | 'secret-pact';
+export type WolfAction = 'kill' | 'infect';
+export interface WitchChoice { heal: boolean; poisonTargetId: string | null }
+export type Phase = 'lobby' | 'reveal' | 'night' | 'witch' | 'morning' | 'discussion' | 'vote' | 'ended';
 export type Winner = 'village' | 'wolves';
 export interface Settings {
+  mode: GameMode;
   wolves: number;
   guard: boolean;
   discussionSeconds: number;
@@ -9,7 +13,7 @@ export interface Settings {
   voteSeconds: number;
 }
 export const DEFAULT_SETTINGS: Settings = {
-  wolves: 2, guard: false, discussionSeconds: 180, nightSeconds: 45, voteSeconds: 45,
+  mode: 'classic', wolves: 2, guard: false, discussionSeconds: 180, nightSeconds: 45, voteSeconds: 45,
 };
 export interface PlayerIdentity { id: string; name: string; connected: boolean; ready: boolean }
 export interface GamePlayer extends PlayerIdentity { role: Role; alive: boolean }
@@ -32,6 +36,13 @@ export interface GameState {
   runoffCandidates: string[] | null;
   voteTally: Record<string, number> | null;
   lastEliminated: string[];
+  wolfActions: Record<string, WolfAction>;
+  pendingAttack: { targetId: string; kind: WolfAction } | null;
+  infectionAvailable: boolean;
+  infectedIds: string[];
+  witchPotions: { heal: boolean; kill: boolean };
+  witchChoice: WitchChoice | null;
+  pact: [string, string] | null;
 }
 export interface GameView {
   phase: Phase;
@@ -44,6 +55,12 @@ export interface GameView {
   ownRole?: Role;
   wolfIds?: string[];
   wolfSelections?: Record<string, string>;
+  wolfActionSelections?: Record<string, WolfAction>;
+  ownWolfAction?: WolfAction;
+  infectionAvailable?: boolean;
+  wasInfected?: boolean;
+  pactPartnerId?: string;
+  witch?: { healAvailable: boolean; killAvailable: boolean; attackTargetId: string | null; choice: WitchChoice | null };
   investigations: Investigation[];
   hasSubmitted: boolean;
   hasAcknowledged: boolean;
@@ -66,7 +83,8 @@ export type Action =
   | { type: 'settings'; settings: Partial<Settings> }
   | { type: 'start' }
   | { type: 'acknowledge' }
-  | { type: 'night'; targetId: string }
+  | { type: 'night'; targetId: string; kind?: WolfAction }
+  | { type: 'witch'; choice: WitchChoice }
   | { type: 'vote'; targetId: string }
   | { type: 'advance' }
   | { type: 'rematch' }

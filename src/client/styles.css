@@ -78,6 +78,7 @@ summary::marker { color: var(--muted); }
 .request-status { min-height: 24px; color: var(--muted); font-size: 13px; margin-bottom: 12px; }
 .resume-button { margin-bottom: 20px; }
 .skip-link { position: fixed; top: -80px; left: 16px; z-index: 20; background: var(--surface); padding: 12px; }
+.skip-link:not(:focus) { clip-path: inset(50%); }
 .skip-link:focus { top: 12px; }
 
 /* One 1088px canvas: 572px + 72px gutter + 444px. It folds to one column. */
@@ -113,7 +114,7 @@ summary::marker { color: var(--muted); }
 .section-heading h2 { font-size: 19px; }
 .section-heading p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .section-heading > span { font-size: 12px; color: var(--muted); white-space: nowrap; }
-.role-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.role-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .role-preview { display: flex; align-items: center; gap: 12px; text-align: left; padding: 14px 12px; min-height: 90px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); }
 .role-preview .role-art { width: 44px; height: 54px; color: var(--accent); }
 .role-preview > span:not(.preview-plus) { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
@@ -162,6 +163,41 @@ summary::marker { color: var(--muted); }
 .deck-composition h3 { margin-bottom: 12px; }
 .deck-composition > div { display: flex; gap: 8px 20px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
 .deck-composition > div span { white-space: nowrap; }
+.mode-picker { padding-top: 24px; }
+.mode-picker > p { color: var(--muted); font-size: 13px; line-height: 1.7; margin-top: 10px; }
+.moderator-narration { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 22px; }
+.moderator-narration summary { font-size: 13px; }
+.moderator-narration summary > span { font-size: 11px; color: var(--muted); font-weight: 400; float: right; padding-top: 2px; }
+.moderator-narration > p { font-size: 14px; line-height: 1.8; color: var(--muted); padding: 8px 0 4px; }
+.private-note { border-left: 2px solid var(--accent); padding: 12px 0 12px 16px; margin-bottom: 24px; text-align: left; }
+.private-note > span { display: block; color: var(--muted); font-size: 11px; margin-bottom: 5px; }
+.private-note strong { display: block; font-size: 14px; margin-bottom: 6px; }
+.private-note p { font-size: 13px; line-height: 1.7; color: var(--muted); }
+.wolf-action-kind { border: 0; padding: 0; margin: 0 0 24px; min-width: 0; }
+.wolf-action-kind legend { font-size: 13px; margin-bottom: 8px; }
+.wolf-action-kind label { display: flex; gap: 12px; align-items: center; min-height: 64px; border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; margin-bottom: 10px; }
+.wolf-action-kind input { width: 20px; height: 20px; flex: none; accent-color: var(--accent); margin: 0; }
+.wolf-action-kind label > span { display: block; font-size: 14px; }
+.wolf-action-kind label > span > span { display: block; color: var(--muted); font-size: 12px; font-weight: 400; margin-top: 2px; }
+.wolf-action-kind > p { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.witch-actions .phase-intro > .role-art { width: 60px; height: 72px; color: var(--accent); margin-bottom: 20px; }
+.raw-victim { border: 1px solid var(--border); padding: 16px; border-radius: 4px; margin-bottom: 24px; }
+.raw-victim > span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.raw-victim > strong { display: block; font-size: 17px; }
+.raw-victim > p { color: var(--muted); font-size: 12px; margin-top: 8px; }
+.potion-choice { display: flex; gap: 20px; align-items: center; min-height: 76px; margin-bottom: 24px; }
+.potion-choice > span { flex: 1; }
+.potion-choice strong { display: block; margin-bottom: 7px; font-size: 14px; }
+.potion-choice small { color: var(--muted); font-size: 11px; font-weight: 400; margin-left: 8px; }
+.potion-choice > span > span { display: block; color: var(--muted); font-size: 13px; line-height: 1.7; font-weight: 400; }
+.poison-choice { margin-bottom: 24px; }
+.poison-choice label { display: flex; align-items: center; justify-content: space-between; }
+.poison-choice label > span { color: var(--muted); font-size: 11px; }
+.poison-choice > p { color: var(--muted); font-size: 12px; line-height: 1.7; margin-top: 8px; }
+.potion-status { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+.rule-modes > div { padding-block: 12px; border-bottom: 1px solid var(--border); }
+.rule-modes h4 { margin-bottom: 5px; }
+.rule-modes p { color: var(--muted); font-size: 13px; line-height: 1.7; }
 .game-settings { padding-block: 12px; border-bottom: 1px solid var(--border); }
 .game-settings summary { font-size: 14px; }
 .game-settings summary > span { float: right; color: var(--muted); font-size: 12px; font-weight: 400; }
@@ -370,6 +406,7 @@ summary::marker { color: var(--muted); }
   .phase-intro h2 { font-size: 23px; }
   .phase-intro > .phase-symbol { margin-bottom: 18px; width: 38px; height: 44px; }
   .phase-intro p { font-size: 14px; }
+  .witch-actions .phase-intro > .role-art { display: none; }
   .target-list { gap: 10px; }
   .target-option { padding: 10px; min-height: 60px; gap: 8px; font-size: 13px; }
   .player-initial { display: none; }

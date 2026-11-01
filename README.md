@@ -41,7 +41,18 @@ For development, `npm run dev` runs Vite and the multiplayer server together on 
 
 See [the complete house rules](docs/RULES.md). This is classic Werewolf with repeated nights, discussion, votes, and elimination. It is not One Night Ultimate Werewolf and does not claim compatibility with every commercial edition.
 
-Eight-player starter deck: **2 Werewolves, 1 Seer, 5 Villagers**. An optional Guard replaces a Villager. Suggested wolf counts are 1 for 6–7 players, 2 for 8–11, and 3 for 12–16; the host may adjust the deck before starting.
+Choose a mode in the lobby:
+
+| Mode | What changes |
+| --- | --- |
+| Classic | Original Seer, Werewolves, Villagers, and optional Guard |
+| No Seer | Witch and Drunk replace the Seer and one Villager; the Witch gets one heal and one kill per game |
+| The Infected Village | Classic deck; wolves may once secretly convert an unprotected ordinary Villager instead of attacking |
+| The Secret Pact | Classic deck; two random players know each other's names and share each other's fate, while keeping their teams |
+
+The app displays moderator narration while the host participates. Infected players receive a private role-change announcement; pact partners receive only their partner's name, not their role.
+
+Eight-player Classic starter deck: **2 Werewolves, 1 Seer, 5 Villagers**. No Seer uses **2 Werewolves, 1 Witch, 1 Drunk, 4 Villagers**. An optional Guard replaces a Villager. Suggested wolf counts are 1 for 6–7 players, 2 for 8–11, and 3 for 12–16; the host may adjust the deck before starting.
 
 Discuss aloud in the room. Eliminated players watch silently. The app manages private actions, timed phases, votes, role reveals, and victory checks. No voice chat or online matchmaking is needed.
 
@@ -74,5 +85,8 @@ Features were developed by separate agents in separate branches and Git worktree
 | `feature/mobile-ui` | Reference-inspired role cards and complete mobile player interface |
 | `feature/lan-release` | Integration, verification, local-network documentation |
 | `feature/terminal-qr` | Current network URL and scannable QR codes at terminal startup |
+| `feature/game-modes-engine` | Witch potions, infection, Secret Pact and mode rules |
+| `feature/game-modes-network` | Mode and action validation, private multiplayer payloads |
+| `feature/game-modes-ui` | Mode picker, new role cards, private instructions and moderator narration |
 
 Card styling follows the supplied design reference: white faces, thin borders, angular copper line art, compact role titles, and black backs. Role illustrations are original SVG artwork included in the application.
