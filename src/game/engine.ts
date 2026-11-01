@@ -54,7 +54,7 @@ export function createGame(players: PlayerIdentity[], settings: Settings, now = 
     settings: { ...settings }, deadline: null, winner: null, events: [], acknowledged: [], nightActions: {}, votes: {},
     investigations: {}, lastGuardTarget: null, runoffCandidates: null, voteTally: null, lastEliminated: [],
   };
-  log(game, `Roles dealt: ${settings.wolves} werewolves, 1 seer${settings.guard ? ', 1 guard' : ''}, ${players.length - settings.wolves - 1 - Number(settings.guard)} villagers.`);
+  log(game, `Roles dealt: ${settings.wolves} ${settings.wolves === 1 ? 'werewolf' : 'werewolves'}, 1 seer${settings.guard ? ', 1 guard' : ''}, ${players.length - settings.wolves - 1 - Number(settings.guard)} villagers.`);
   return game;
 }
 

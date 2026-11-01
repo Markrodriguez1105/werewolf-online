@@ -48,6 +48,7 @@ Discuss aloud in the room. Eliminated players watch silently. The app manages pr
 - A room code or QR link grants access to the lobby, not another player's identity. Reconnect tokens are never placed in share links or public room state.
 - The server validates actions and sends each player an individual view. Living roles, Seer results, and wolf coordination are filtered on the server.
 - If the host disconnects, a connected player becomes host. The host has no special access to hidden roles.
+- In the lobby, the host can remove disconnected seats. If a match gets stuck, the host can end it and return the group to the lobby. Resetting or starting a rematch removes disconnected seats.
 - During a match, a disconnected player's seat remains reserved. Missing votes/actions expire at the deadline. Players cannot join a match already in progress.
 
 ## Development and verification

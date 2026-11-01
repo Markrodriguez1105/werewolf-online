@@ -48,6 +48,8 @@ This parity ending is an explicit rule of this app. The losing team does not nee
 
 A refresh or temporary connection loss does not eliminate a player. Reopen the same address in the same browser to resume. Timers continue during disconnects. If a required action is missing when its phase ends, the normal missing-action rule applies. The host role transfers to a connected player when possible. During a match, leaving reserves the original seat; it cannot be taken over by entering the same name.
 
+In the lobby, the host may explicitly remove disconnected seats. If someone cannot return during a match (including before acknowledging a card), the host may end that match and return the group to the lobby. This abandons the current match without a winner. Returning to the lobby through this action or a rematch removes disconnected seats and clears everyone's ready status.
+
 The host computer/server is the source of truth. Stopping or restarting it ends the match. Keep it powered and awake.
 
 ## Suggested decks

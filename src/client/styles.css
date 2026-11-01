@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-  --ground: #f5f4f0;
+  --ground: #f4f3f1;
   --surface: #fff;
   --raised: #eeede8;
   --text: #201e1b;
@@ -298,6 +298,9 @@ summary::marker { color: var(--muted); }
   .home-facts { gap: 22px; }
   .home-facts > span + span::before { margin-right: 22px; }
   .home-facts .text-button { margin-left: 0; }
+}
+@media (min-width: 721px) and (max-width: 900px) {
+  .card-fan { transform: scale(.72); height: 250px; margin-top: 18px; }
 }
 @media (max-width: 720px) {
   .app-header, .app-footer, .home-main, .room-main { width: calc(100% - 40px); }
